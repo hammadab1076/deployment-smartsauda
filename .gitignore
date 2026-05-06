@@ -1,0 +1,133 @@
+# ============================================================
+# Smart Sauda FYP — .gitignore
+# ============================================================
+
+
+# ─── Flutter (Smart_sauda1/) ────────────────────────────────
+
+# Build outputs
+Smart_sauda1/build/
+Smart_sauda1/.dart_tool/
+Smart_sauda1/.flutter-plugins
+Smart_sauda1/.flutter-plugins-dependencies
+Smart_sauda1/.packages
+
+# Generated files
+Smart_sauda1/*.g.dart
+Smart_sauda1/**/*.g.dart
+Smart_sauda1/firebase_options.dart
+
+# Android
+Smart_sauda1/android/.gradle/
+Smart_sauda1/android/captures/
+Smart_sauda1/android/local.properties
+Smart_sauda1/android/key.properties
+Smart_sauda1/android/**/GeneratedPluginRegistrant.java
+Smart_sauda1/android/app/google-services.json
+Smart_sauda1/android/keystore/
+
+# iOS
+Smart_sauda1/ios/.symlinks/
+Smart_sauda1/ios/Flutter/flutter_export_environment.sh
+Smart_sauda1/ios/Flutter/Generated.xcconfig
+Smart_sauda1/ios/Pods/
+Smart_sauda1/ios/GoogleService-Info.plist
+
+# macOS / Windows / Linux (desktop)
+Smart_sauda1/macos/Flutter/GeneratedPluginRegistrant.swift
+Smart_sauda1/windows/flutter/generated_plugin_registrant.cc
+Smart_sauda1/windows/flutter/generated_plugin_registrant.h
+Smart_sauda1/windows/flutter/generated_plugins.cmake
+Smart_sauda1/linux/flutter/generated_plugin_registrant.cc
+Smart_sauda1/linux/flutter/generated_plugin_registrant.h
+Smart_sauda1/linux/flutter/generated_plugins.cmake
+
+# Temp analysis & debug files
+Smart_sauda1/analysis_output.txt
+Smart_sauda1/final_analysis.txt
+Smart_sauda1/test_analysis_output.txt
+Smart_sauda1/final_check.json
+Smart_sauda1/final_result.txt
+Smart_sauda1/machine_analysis.json
+Smart_sauda1/machine_analysis_2.json
+Smart_sauda1/*.iml
+
+
+# ─── Node.js (backend/ and pos/) ────────────────────────────
+
+node_modules/
+**/node_modules/
+backend/node_modules/
+pos/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment secrets — NEVER commit these
+.env
+.env.local
+.env.development
+.env.production
+.env.*
+
+# Build outputs (POS Vite app)
+pos/dist/
+pos/.vite/
+
+
+# ─── Arduino / Embedded ─────────────────────────────────────
+
+*.elf
+*.hex
+*.bin
+*.map
+sketch_esp01/build/
+arduino.IDE/build/
+
+
+# ─── Secrets & credentials ──────────────────────────────────
+
+*.pem
+*.key
+*.p12
+*.keystore
+google-services.json
+GoogleService-Info.plist
+serviceAccountKey.json
+
+
+# ─── OS files ───────────────────────────────────────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+
+# ─── IDEs & editors ─────────────────────────────────────────
+
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history/
+
+
+# ─── Misc ───────────────────────────────────────────────────
+
+*.log
+*.tmp
+*.bak
+*.orig
