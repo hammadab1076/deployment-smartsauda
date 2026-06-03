@@ -2,12 +2,24 @@ const router = require('express').Router();
 const db = require('../config/db');
 const { v4: uuidv4 } = require('uuid');
 
-// GET all orders (admin)
+// GET all orders (admin) — includes customer name and items
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM orders ORDER BY created_at DESC');
-    console.log(`[ORDERS] GET all — ${rows.length} orders`);
-    res.json(rows);
+    const [orders] = await db.query(
+      `SELECT o.*, u.name AS customer_name, u.email AS customer_email
+       FROM orders o
+       LEFT JOIN users u ON o.user_id = u.id
+       ORDER BY o.created_at DESC`
+    );
+    for (const order of orders) {
+      const [items] = await db.query(
+        'SELECT * FROM order_items WHERE order_id = ?',
+        [order.id]
+      );
+      order.items = items;
+    }
+    console.log(`[ORDERS] GET all — ${orders.length} orders`);
+    res.json(orders);
   } catch (e) {
     console.error(`[ORDERS] GET all error: ${e.message}`);
     res.status(500).json({ error: e.message });

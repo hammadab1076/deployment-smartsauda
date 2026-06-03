@@ -60,28 +60,86 @@ export default function Dashboard() {
 
         {/* Scanner Status Banner */}
         {scanner ? (
-          <div className={`border rounded-2xl px-5 py-3 flex items-center justify-between ${
+          <div className={`border rounded-2xl px-5 py-3 ${
             scanner.status === 'online'
               ? 'bg-success/10 border-success/30'
-              : 'bg-slate-100 border-slate-200'
+              : scanner.pairedCarts?.length > 0
+                ? 'bg-blue-50 border-blue-200'
+                : 'bg-slate-100 border-slate-200'
           }`}>
-            <div className="flex items-center gap-3">
-              {scanner.status === 'online'
-                ? <Wifi size={18} className="text-success" />
-                : <WifiOff size={18} className="text-slate-400" />}
-              <span className={`text-sm font-medium ${scanner.status === 'online' ? 'text-green-800' : 'text-slate-500'}`}>
-                <strong>{scanner.id}</strong> is <strong>{scanner.status}</strong> · {scanner.port}
-                {scanner.pairedUser && <> · Paired with <strong>{scanner.pairedUser}</strong></>}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {scanner.status === 'online'
+                  ? <Wifi size={18} className="text-success" />
+                  : <WifiOff size={18} className={scanner.pairedCarts?.length > 0 ? 'text-blue-400' : 'text-slate-400'} />}
+                <span className={`text-sm font-medium ${
+                  scanner.status === 'online'
+                    ? 'text-green-800'
+                    : scanner.pairedCarts?.length > 0
+                      ? 'text-blue-700'
+                      : 'text-slate-500'
+                }`}>
+                  <strong>{scanner.id}</strong> · {scanner.port} ·{' '}
+                  <strong>{scanner.status}</strong>
+                  {scanner.pairedCarts?.length > 0 && (
+                    <> · {scanner.pairedCarts.length} paired customer{scanner.pairedCarts.length > 1 ? 's' : ''}</>
+                  )}
+                </span>
+              </div>
+              <button onClick={load} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <RefreshCw size={14} />
+              </button>
             </div>
-            <button onClick={load} className="text-slate-400 hover:text-slate-600 transition-colors">
-              <RefreshCw size={14} />
-            </button>
+            {scanner.pairedCarts?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2 ml-7">
+                {scanner.pairedCarts.map(c => (
+                  <span key={c.cartId} className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    scanner.status === 'online'
+                      ? 'bg-success/20 text-green-800'
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {c.customer}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ) : !loading && (
           <div className="bg-slate-100 border border-slate-200 rounded-2xl px-5 py-3 flex items-center gap-3">
             <WifiOff size={18} className="text-slate-400" />
             <span className="text-sm text-slate-500">No scanner configured</span>
+          </div>
+        )}
+
+        {/* Active Shopping Sessions */}
+        {!loading && data?.activeSessions?.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <div>
+                <h3 className="font-semibold text-slate-800">Active Sessions</h3>
+                <p className="text-xs text-slate-400">{data.activeSessions.length} customer{data.activeSessions.length > 1 ? 's' : ''} currently shopping</p>
+              </div>
+              <span className="w-2.5 h-2.5 bg-success rounded-full animate-pulse" />
+            </div>
+            <div className="divide-y divide-slate-50">
+              {data.activeSessions.map(s => (
+                <div key={s.cartId} className="flex items-center justify-between px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center">
+                      <Users size={14} className="text-success" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{s.customer}</p>
+                      <p className="text-xs text-slate-400 font-mono">{s.cartId}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-slate-600">{s.itemCount} item{s.itemCount !== 1 ? 's' : ''}</p>
+                    <p className="text-xs text-slate-400">{s.scannerId || 'No scanner'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

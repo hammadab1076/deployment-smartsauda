@@ -21,10 +21,10 @@ router.get('/', async (req, res) => {
 
       const paired = activeCarts.length > 0 ? activeCarts[0] : null;
 
-      // Online if: active cart is paired right now, OR last_seen within 10 minutes
+      // Online only if hardware has sent a heartbeat in the last 10 minutes
       const lastSeen = s.last_seen ? new Date(s.last_seen) : null;
       const minutesAgo = lastSeen ? (Date.now() - lastSeen.getTime()) / 60000 : Infinity;
-      const status = (paired !== null || minutesAgo < 10) ? 'online' : 'offline';
+      const status = minutesAgo < 10 ? 'online' : 'offline';
 
       return {
         id:           s.id,

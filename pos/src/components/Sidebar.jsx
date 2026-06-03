@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingCart, Users, BookUser,
-  ShoppingBag, BarChart3, Settings, Zap, LogOut,
+  ShoppingBag, BarChart3, Settings, LogOut,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -29,8 +29,11 @@ export default function Sidebar() {
     <aside className="w-64 min-h-screen bg-sidebar flex flex-col shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
-        <div className="w-9 h-9 bg-success rounded-xl flex items-center justify-center">
-          <Zap size={20} className="text-white" />
+        {/* Green container → white inner box → green cart — mirrors the app icon */}
+        <div className="w-10 h-10 bg-success rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 bg-white rounded-md flex items-center justify-center">
+            <ShoppingCart size={14} className="text-success" strokeWidth={2.5} />
+          </div>
         </div>
         <div>
           <p className="text-white font-bold text-base leading-tight">Smart Sauda</p>

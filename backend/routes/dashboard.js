@@ -74,29 +74,36 @@ router.get('/', async (req, res) => {
        LIMIT 5`
     );
 
+    // ── Active shopping sessions (all active carts, any scanner) ─────────────
+    const [activeSessions] = await db.query(
+      `SELECT c.id AS cartId, u.name AS customer, c.scanner_id AS scannerId,
+              c.created_at AS startedAt,
+              (SELECT COUNT(*) FROM cart_items ci WHERE ci.cart_id = c.id) AS itemCount
+       FROM carts c
+       LEFT JOIN users u ON c.user_id = u.id
+       WHERE c.status = 'active'
+       ORDER BY c.created_at DESC`
+    );
+
     // ── Scanner status (graceful — table may not exist until migration runs) ──────
     let scanner = null;
     try {
-      const [scanners] = await db.query('SELECT * FROM scanners LIMIT 1');
+      const [scanners] = await db.query(
+        `SELECT *, TIMESTAMPDIFF(SECOND, last_seen, NOW()) AS seconds_since FROM scanners LIMIT 1`
+      );
       if (scanners.length > 0) {
         const s = scanners[0];
-        const [activeCarts] = await db.query(
-          `SELECT c.id AS cartId, u.name AS userName
-           FROM carts c LEFT JOIN users u ON c.user_id = u.id
-           WHERE c.scanner_id = ? AND c.status = 'active'
-           ORDER BY c.created_at DESC LIMIT 1`,
-          [s.id]
-        );
-        const lastSeen   = s.last_seen ? new Date(s.last_seen) : null;
-        const minutesAgo = lastSeen ? (Date.now() - lastSeen.getTime()) / 60000 : Infinity;
-        const isOnline   = activeCarts.length > 0 || minutesAgo < 10;
+        // seconds_since computed by MySQL so timezone is handled consistently
+        const secondsSince = s.last_seen ? Number(s.seconds_since) : Infinity;
+        const isOnline     = secondsSince >= 0 && secondsSince < 600; // 10 minutes
+        // All active carts paired with this scanner
+        const paired = activeSessions.filter(c => c.scannerId === s.id);
         scanner = {
-          id:         s.id,
-          port:       s.port,
-          status:     isOnline ? 'online' : 'offline',
-          lastSeen:   s.last_seen,
-          pairedCart: activeCarts[0]?.cartId  || null,
-          pairedUser: activeCarts[0]?.userName || null,
+          id:           s.id,
+          port:         s.port,
+          status:       isOnline ? 'online' : 'offline',
+          lastSeen:     s.last_seen,
+          pairedCarts:  paired.map(c => ({ cartId: c.cartId, customer: c.customer })),
         };
       }
     } catch {
@@ -122,6 +129,13 @@ router.get('/', async (req, res) => {
         items:    Number(o.items),
         total:    parseFloat(o.total),
         status:   o.status,
+      })),
+      activeSessions: activeSessions.map(s => ({
+        cartId:    s.cartId,
+        customer:  s.customer || 'Unknown',
+        scannerId: s.scannerId,
+        startedAt: s.startedAt,
+        itemCount: Number(s.itemCount),
       })),
       scanner,
     });

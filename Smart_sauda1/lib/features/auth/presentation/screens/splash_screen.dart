@@ -45,39 +45,82 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF00C853), // Professional vibrant green background
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.shopping_cart,
-              size: 110, // Increased size
-              color: Colors.white,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Smart Sauda",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+      backgroundColor: Colors.white,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Icon at exact mathematical center — drawn with widgets, perfectly centred
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Center(
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.shopping_cart_rounded,
+                      color: Color(0xFF00C853),
+                      size: 34,
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 10),
-            const Text(
-              "Smart Shopping Cart System",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
+          ),
+          // App name below center
+          const Align(
+            alignment: Alignment(0, 0.72),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Smart Sauda",
+                  style: TextStyle(
+                    color: Color(0xFF0D1B2A),
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Smart Shopping Cart System",
+                  style: TextStyle(
+                    color: Color(0xFF6C757D),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Spinner at the bottom
+          const Positioned(
+            bottom: 48,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00C853)),
+                ),
               ),
             ),
-            const SizedBox(height: 30),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
