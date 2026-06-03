@@ -14,7 +14,6 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.9.7",
-    "serialport": "^13.0.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
