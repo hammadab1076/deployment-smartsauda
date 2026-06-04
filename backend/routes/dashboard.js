@@ -15,12 +15,9 @@ router.get('/', async (req, res) => {
       "SELECT COUNT(*) AS v FROM users WHERE is_active=1 AND role='customer'"
     );
     const [[totalProds]]  = await db.query("SELECT COUNT(*) AS v FROM products");
-    const [[lowStock]]    = await db.query(
-      "SELECT COUNT(*) AS v FROM products WHERE stock > 0 AND stock < 20"
-    );
-    const [[outOfStock]]  = await db.query(
-      "SELECT COUNT(*) AS v FROM products WHERE stock = 0"
-    );
+    // products table has no stock column — default to 0
+    const lowStock   = { v: 0 };
+    const outOfStock = { v: 0 };
 
     // ── Weekly revenue (last 7 days, fill missing days with 0) ───────────────
     const [weekRows] = await db.query(
