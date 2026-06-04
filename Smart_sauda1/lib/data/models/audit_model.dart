@@ -12,6 +12,12 @@ class AuditModel extends AuditEntity {
     super.orderId,
   });
 
+  static DateTime _parseUtc(String raw) {
+    final normalized = raw.contains('T') ? raw : raw.replaceFirst(' ', 'T');
+    final withZ = normalized.endsWith('Z') ? normalized : '${normalized}Z';
+    return DateTime.parse(withZ).toLocal();
+  }
+
   // From MySQL API response (snake_case columns)
   factory AuditModel.fromApiMap(Map<String, dynamic> map) {
     // resolved_amount comes from JOIN (falls back to audit's own total_amount)
@@ -21,7 +27,7 @@ class AuditModel extends AuditEntity {
       auditorId:          map['auditor_id'] ?? '',
       cartId:             map['cart_id'] ?? '',
       timestamp:          map['created_at'] != null
-                            ? DateTime.parse(map['created_at'].toString())
+                            ? _parseUtc(map['created_at'].toString())
                             : DateTime.now(),
       discrepanciesCount: map['discrepancies_count'] ?? 0,
       status:             map['status'] ?? 'pending',

@@ -144,14 +144,18 @@ class ApiDataSource {
 
   Future<List<AuditModel>> getAudits(String auditorId) async {
     final res = await http.get(Uri.parse('$_base/audits/auditor/$auditorId'));
-    final List data = json.decode(res.body) as List;
-    return data.map((m) => AuditModel.fromApiMap(m as Map<String, dynamic>)).toList();
+    if (res.statusCode != 200) return [];
+    final decoded = json.decode(res.body);
+    if (decoded is! List) return [];
+    return decoded.map((m) => AuditModel.fromApiMap(m as Map<String, dynamic>)).toList();
   }
 
   Future<List<AuditModel>> getAllAudits() async {
     final res = await http.get(Uri.parse('$_base/audits'));
-    final List data = json.decode(res.body) as List;
-    return data.map((m) => AuditModel.fromApiMap(m as Map<String, dynamic>)).toList();
+    if (res.statusCode != 200) return [];
+    final decoded = json.decode(res.body);
+    if (decoded is! List) return [];
+    return decoded.map((m) => AuditModel.fromApiMap(m as Map<String, dynamic>)).toList();
   }
 
   Future<void> createAudit({

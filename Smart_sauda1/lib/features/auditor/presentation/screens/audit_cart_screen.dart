@@ -42,13 +42,12 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
           });
         }
 
-        // Button enabled when: all items verified AND bill not yet generated/paid
+        // Generate bill enabled only after customer pressed checkout (awaiting_audit)
+        // and all items are verified and bill not yet sent
         final canGenerate = total > 0 &&
             issues == 0 &&
             !auditor.billGenerated &&
-            status != 'auditing' &&
-            status != 'paid' &&
-            status != 'abandoned';
+            status == 'awaiting_audit';
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -227,13 +226,15 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
                             // Hint text below the button
                             if (!canGenerate && !auditor.billGenerated &&
                                 status != 'auditing' &&
-                                status != 'paid')
+                                status != 'completed')
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
                                 child: Text(
                                   issues > 0
                                       ? "Verify all $issues remaining item(s) to enable bill generation."
-                                      : "",
+                                      : status != 'awaiting_audit'
+                                          ? "Waiting for customer to press 'Proceed to Checkout'."
+                                          : "",
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                       color: Color(0xFF6C757D),

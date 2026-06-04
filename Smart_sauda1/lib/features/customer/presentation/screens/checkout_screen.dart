@@ -378,15 +378,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final status = snapshot.data!['status'] as String? ?? '';
 
           switch (status) {
-            case 'checkout_requested':
+            case 'active':
+            case 'awaiting_audit':
               return _buildWaiting();
 
-            case 'bill_generated':
+            case 'auditing':
               return _buildPaymentOptions(checkout);
 
-            case 'paid':
             case 'completed':
-              // Rare: user somehow still on this screen after paying
               return _buildError("This order has already been processed.");
 
             case 'abandoned':

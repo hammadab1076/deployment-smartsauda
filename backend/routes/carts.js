@@ -110,22 +110,15 @@ router.post('/:cartId/items', async (req, res) => {
   }
 });
 
-// PUT update cart status (optionally store payment_method when status='paid')
+// PUT update cart status
 router.put('/:cartId/status', async (req, res) => {
-  const { status, paymentMethod } = req.body;
+  const { status } = req.body;
   try {
-    if (paymentMethod) {
-      await db.query(
-        'UPDATE carts SET status = ?, payment_method = ?, last_updated = NOW() WHERE id = ?',
-        [status, paymentMethod, req.params.cartId]
-      );
-    } else {
-      await db.query(
-        'UPDATE carts SET status = ?, last_updated = NOW() WHERE id = ?',
-        [status, req.params.cartId]
-      );
-    }
-    console.log(`[CART] Status: ${req.params.cartId} → ${status}${paymentMethod ? ` (${paymentMethod})` : ''}`);
+    await db.query(
+      'UPDATE carts SET status = ?, last_updated = NOW() WHERE id = ?',
+      [status, req.params.cartId]
+    );
+    console.log(`[CART] Status: ${req.params.cartId} → ${status}`);
     res.json({ success: true });
   } catch (e) {
     console.error(`[CART] PUT status error: ${e.message}`);

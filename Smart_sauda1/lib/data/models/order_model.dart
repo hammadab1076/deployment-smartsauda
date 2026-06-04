@@ -10,6 +10,13 @@ class OrderModel extends OrderEntity {
     required super.items,
   });
 
+  // MySQL DATETIME has no timezone suffix — treat as UTC and convert to local.
+  static DateTime _parseUtc(String raw) {
+    final normalized = raw.contains('T') ? raw : raw.replaceFirst(' ', 'T');
+    final withZ = normalized.endsWith('Z') ? normalized : '${normalized}Z';
+    return DateTime.parse(withZ).toLocal();
+  }
+
   // From MySQL API response (snake_case columns)
   factory OrderModel.fromApiMap(Map<String, dynamic> map) {
     return OrderModel(
@@ -17,7 +24,7 @@ class OrderModel extends OrderEntity {
       userId:      map['user_id'] ?? '',
       totalAmount: double.tryParse(map['total_amount'].toString()) ?? 0.0,
       timestamp:   map['created_at'] != null
-                     ? DateTime.parse(map['created_at'].toString())
+                     ? _parseUtc(map['created_at'].toString())
                      : DateTime.now(),
       status:      map['status'] ?? 'completed',
       items:       (map['items'] as List? ?? []).map((i) => OrderItemEntity(
