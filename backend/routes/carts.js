@@ -1,26 +1,42 @@
 const router = require('express').Router();
 const db = require('../config/db');
 
-// POST create cart session
+// POST create / reclaim cart session
+// Supports static cart IDs (QR code on physical cart).
+// Rules:
+//   1. Cart active + same user      → already yours, return success
+//   2. Cart active + different user → 409 Cart is in use
+//   3. Cart exists but not active   → reset it (clear items, new session)
+//   4. Cart doesn't exist           → INSERT new
 router.post('/', async (req, res) => {
   const { cartId, userId, scannerId } = req.body;
   if (!cartId || !userId) return res.status(400).json({ error: 'cartId and userId are required' });
   try {
-    // Abandon any previous active cart on the same scanner so the new cart takes over
-    if (scannerId) {
-      const [prev] = await db.query(
-        "SELECT id FROM carts WHERE scanner_id = ? AND status = 'active'",
-        [scannerId]
-      );
-      if (prev.length > 0) {
-        await db.query(
-          "UPDATE carts SET status = 'abandoned', last_updated = NOW() WHERE scanner_id = ? AND status = 'active'",
-          [scannerId]
-        );
-        console.log(`[CART] Abandoned ${prev.length} previous cart(s) for scanner ${scannerId}`);
+    const [existing] = await db.query('SELECT * FROM carts WHERE id = ?', [cartId]);
+
+    if (existing.length > 0) {
+      const cart = existing[0];
+
+      // Rule 1: already the same user's active cart
+      if (cart.status === 'active' && cart.user_id === userId) {
+        return res.json({ cartId, scannerId: cart.scanner_id });
       }
+      // Rule 2: active but belongs to someone else
+      if (cart.status === 'active' && cart.user_id !== userId) {
+        console.log(`[CART] BUSY: ${cartId} in use by another customer`);
+        return res.status(409).json({ error: 'Cart is currently in use by another customer. Please wait until it is free.' });
+      }
+      // Rule 3: finished session — reset for new customer
+      await db.query('DELETE FROM cart_items WHERE cart_id = ?', [cartId]);
+      await db.query(
+        "UPDATE carts SET user_id=?, scanner_id=?, status='active', last_updated=NOW(), completed_at=NULL WHERE id=?",
+        [userId, scannerId || null, cartId]
+      );
+      console.log(`[CART] Reset: ${cartId} → new session for user: ${userId}`);
+      return res.json({ cartId, scannerId: scannerId || null });
     }
 
+    // Rule 4: brand new cart
     await db.query(
       'INSERT INTO carts (id, user_id, scanner_id, status) VALUES (?, ?, ?, ?)',
       [cartId, userId, scannerId || null, 'active']

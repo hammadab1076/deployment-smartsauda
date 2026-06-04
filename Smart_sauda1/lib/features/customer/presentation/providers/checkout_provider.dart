@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
@@ -40,13 +41,22 @@ class CheckoutProvider extends ChangeNotifier {
   // Cart session
   // ---------------------------------------------------------------------------
 
-  Future<void> startNewCartSession(String userId, {String scannerId = 'SCANNER_01'}) async {
-    debugPrint("DEBUG: startNewCartSession for user: $userId, scanner: $scannerId");
-    final cartId = 'CART_${DateTime.now().millisecondsSinceEpoch}';
-    await _orderRepository.createCartSession(cartId, userId, scannerId: scannerId);
-    _activeCartId = cartId;
-    debugPrint("DEBUG: Active cart: $_activeCartId");
-    notifyListeners();
+  Future<String?> startNewCartSession(String userId,
+      {String scannerId = 'SCANNER_01', String? cartId}) async {
+    final id = cartId ?? 'CART_${DateTime.now().millisecondsSinceEpoch}';
+    debugPrint("DEBUG: startNewCartSession cart=$id user=$userId scanner=$scannerId");
+    try {
+      await _orderRepository.createCartSession(id, userId, scannerId: scannerId);
+      _activeCartId = id;
+      _error = null;
+      debugPrint("DEBUG: Active cart: $_activeCartId");
+      notifyListeners();
+      return null; // success
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return _error; // returns error message
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -186,6 +196,8 @@ class CheckoutProvider extends ChangeNotifier {
       };
       await _orderRepository.addItemToCart(_activeCartId!, item);
       debugPrint("DEBUG: Added '${productData['name']}' to cart $_activeCartId");
+      SystemSound.play(SystemSoundType.click);
+      HapticFeedback.mediumImpact();
       notifyListeners();
     } catch (e) {
       _error = "Cart update failed: $e";
@@ -217,13 +229,12 @@ class CheckoutProvider extends ChangeNotifier {
       // Fetch current status first so we don't overwrite bill_generated / paid
       final cartData = await _orderRepository.getCartStream(_activeCartId!).first;
       final currentStatus = cartData['status'] as String? ?? 'active';
-      if (currentStatus == 'bill_generated' ||
-          currentStatus == 'paid' ||
+      if (currentStatus == 'auditing' ||
           currentStatus == 'completed') {
         // Auditor already acted — skip the extra update and proceed
         return true;
       }
-      await _orderRepository.updateCartStatus(_activeCartId!, 'checkout_requested');
+      await _orderRepository.updateCartStatus(_activeCartId!, 'awaiting_audit');
       debugPrint("DEBUG: Checkout requested for cart $_activeCartId");
       return true;
     } catch (e) {
@@ -265,7 +276,7 @@ class CheckoutProvider extends ChangeNotifier {
       if (_activeCartId != null) {
         await _orderRepository.updateCartStatus(
           _activeCartId!,
-          'paid',
+          'completed',
           paymentMethod: paymentMethod,
         );
       }

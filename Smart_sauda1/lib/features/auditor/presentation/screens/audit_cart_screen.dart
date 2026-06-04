@@ -26,7 +26,7 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
         final issues     = total - verified;
 
         // ── Auto-pop once customer has paid ──────────────────────────────────
-        if (status == 'paid') {
+        if (status == 'completed') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             auditor.stopListening();
@@ -46,7 +46,7 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
         final canGenerate = total > 0 &&
             issues == 0 &&
             !auditor.billGenerated &&
-            status != 'bill_generated' &&
+            status != 'auditing' &&
             status != 'paid' &&
             status != 'abandoned';
 
@@ -79,14 +79,14 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
           body: Column(
             children: [
               // ── Status banners ─────────────────────────────────────────────
-              if (status == 'checkout_requested')
+              if (status == 'awaiting_audit')
                 _StatusBanner(
                   color: const Color(0xFF1565C0),
                   bg:    const Color(0xFFE3F2FD),
                   icon:  Icons.shopping_cart_checkout,
                   text:  "Customer is ready to pay — verify all items, then generate the bill.",
                 ),
-              if (status == 'bill_generated' || auditor.billGenerated)
+              if (status == 'auditing' || auditor.billGenerated)
                 _StatusBanner(
                   color: const Color(0xFF00796B),
                   bg:    const Color(0xFFE0F2F1),
@@ -195,8 +195,8 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
                                     qty: ((item['quantity'] ?? 1) as num).toInt(),
                                     isVerified: isVerified,
                                     onTap: (auditor.billGenerated ||
-                                            status == 'bill_generated' ||
-                                            status == 'paid')
+                                            status == 'auditing' ||
+                                            status == 'completed')
                                         ? null // lock after bill generated
                                         : () {
                                             if (cartId != 'Not Linked') {
@@ -226,7 +226,7 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
                           children: [
                             // Hint text below the button
                             if (!canGenerate && !auditor.billGenerated &&
-                                status != 'bill_generated' &&
+                                status != 'auditing' &&
                                 status != 'paid')
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
@@ -247,14 +247,14 @@ class _AuditCartScreenState extends State<AuditCartScreen> {
                               child: ElevatedButton.icon(
                                 icon: Icon(
                                   auditor.billGenerated ||
-                                          status == 'bill_generated'
+                                          status == 'auditing'
                                       ? Icons.hourglass_top_rounded
                                       : Icons.receipt_long,
                                   color: Colors.white,
                                 ),
                                 label: Text(
                                   auditor.billGenerated ||
-                                          status == 'bill_generated'
+                                          status == 'auditing'
                                       ? "Waiting for Customer Payment..."
                                       : "Generate Bill & Send to Customer",
                                   style: const TextStyle(

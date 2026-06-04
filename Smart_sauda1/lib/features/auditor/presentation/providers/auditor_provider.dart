@@ -48,7 +48,7 @@ class AuditorProvider extends ChangeNotifier {
       notifyListeners();
 
       // Auto-cleanup once customer has paid — subscription no longer needed
-      if (data['status'] == 'paid') {
+      if (data['status'] == 'completed') {
         _cartSubscription?.cancel();
         _cartSubscription = null;
         // Keep _activeCartData so the UI can show the final "paid" state
@@ -80,7 +80,7 @@ class AuditorProvider extends ChangeNotifier {
         total += price * qty;
       }
 
-      await _auditRepository.updateCartStatus(cartId, 'bill_generated');
+      await _auditRepository.updateCartStatus(cartId, 'auditing');
       await _auditRepository.createAudit(
         cartId: cartId,
         auditorId: auditorId,
